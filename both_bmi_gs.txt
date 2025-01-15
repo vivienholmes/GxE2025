@@ -1,0 +1,35 @@
+#!/bin/bash --login
+#$ -l mem512
+#$ -cwd
+#$ -t 10-22
+
+# Load any required modulefiles
+module load apps/binapps/plink2/20211217
+module load apps/gcc/R/4.2.2
+
+# Now the commands to be run by the job
+
+phenofile=
+
+chromosome_analysis () {
+	chr=$1
+	echo $chr
+	
+	for filename in /mnt/mhs01-home01/KMuir/y78216vh/PRACTICAL_Data/OncoArray/Imputation_1kg_v3/onco_part_merged_1_16_chr${chr}_*; do
+
+		echo $filename
+
+		plink2 --keep both_cca_bmi_id.csv --gen $filename ref-unknown --sample /mnt/mhs01-home01/KMuir/y78216vh/PRACTICAL_Data/OncoArray/Imputation/onco_sample_euro_bycountry_imp_7pcs.txt --export bgen-1.3 --maf 0.05 --geno 0.2 --hwe 1e-6 0.001--chr $chr --oxford-single-chr $chr --out "PLINK_bmi-$1"
+		
+		~/software/GEM/GEM_1.5.2_Intel --bgen PLINK_bmi-$chr.bgen --sample PLINK_bmi-$chr.sample --pheno-file ../../../both_cca_bmi.pheno --sampleid-name ID_1 --pheno-name GleasonScore --exposure-names BMI --covar-names AgeInt pc1_euro.x pc2_euro.x pc3_euro.x pc4_euro.x pc5_euro.x pc6_euro.x pc7_euro.x strata_country_study --robust 1 --center 0 --missing-value NaN --out "both-bmi-gs-$chr.out"
+
+		
+		#report results
+		Rscript ~/PRACTICAL_Data_Analysis/prs_environment_analysis/12-3/onco_report_gs_bmi_man.R $chr
+
+		echo $filename
+
+	done
+}
+
+chromosome_analysis $SGE_TASK_ID
