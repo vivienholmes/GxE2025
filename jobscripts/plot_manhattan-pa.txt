@@ -1,0 +1,12 @@
+#!/bin/bash --login
+# -l mem512
+#$ -cwd              # Job will run in the current directory (where you ran qsub)
+                     # Nothing specified to request more cores = default 1 core
+
+# Load any required modulefiles
+module load apps/gcc/R/4.2.2
+
+pheno='P_Activity'
+
+# Now the commands to be run by the job
+Rscript ~/PRACTICAL_Data_Analysis/freshgraphs/plot_manhattan.R $pheno
